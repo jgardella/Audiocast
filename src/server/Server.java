@@ -1,7 +1,7 @@
 /**
  *
  */
-package test;
+package server;
 
 import java.awt.Dimension;
 import java.io.IOException;
@@ -40,6 +40,10 @@ public class Server
 		frame.setVisible(true);
 	}
 	
+	/**
+	 * The Server listens for connections on its serverSocket. When it receives a connection, it creates a new 
+	 * ServerThread to handle it, and adds the thread to its ArrayList threads in order to track it.
+	 */
 	public void run()
 	{
 		try
@@ -68,7 +72,11 @@ public class Server
 	{
 		new Server().run();
 	}
-
+	
+	/**
+	 * Removes the thread at index from the threads ArrayList.
+	 * @param index The index of the thread to be removed.
+	 */
 	public void removeThread(int index)
 	{
 		threads.remove(index);

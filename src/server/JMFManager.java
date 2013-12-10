@@ -1,7 +1,7 @@
 /**
  *
  */
-package test;
+package server;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,8 +22,12 @@ import javax.media.format.AudioFormat;
 import javax.media.protocol.ContentDescriptor;
 import javax.media.protocol.DataSource;
 
-import test.ChangeSourceDatagram.Source;
+import server.ChangeSourceDatagram.Source;
 
+/**
+ * THE JMFManager class abstracts all of the serverside JMF components into two methods to start and stop transmitting, and one
+ * to change the source to be transmitted.
+ */
 public class JMFManager
 {
 	
@@ -54,6 +58,9 @@ public class JMFManager
 		}
 	}
 	
+	/**
+	 * Starts transmitting to the user.
+	 */
 	public void startTransmitting()
 	{
 		mediaProcessor.start();
@@ -70,6 +77,9 @@ public class JMFManager
 		}
 	}
 	
+	/**
+	 * Stops the transmission.
+	 */
 	public void stopTransmitting()
 	{
 		try
@@ -84,6 +94,10 @@ public class JMFManager
 		mediaProcessor.close();
 	}
 	
+	/**
+	 * Changes the source to be transmitted and restarts the transmission.
+	 * @param source The new source to be transmitted.
+	 */
 	public void changeSource(Source source)
 	{
 		stopTransmitting();

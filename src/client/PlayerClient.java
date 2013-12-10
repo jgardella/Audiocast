@@ -23,7 +23,7 @@ import javax.media.rtp.RTPManager;
 import javax.media.rtp.ReceiveStreamListener;
 import javax.media.rtp.SessionAddress;
 
-import test.ChangeSourceDatagram;
+import server.ChangeSourceDatagram;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -44,12 +44,22 @@ public class PlayerClient implements ActionListener
 	
 	public PlayerClient()
 	{
+		String[] sourceList = { "BigScreen", "TV1", "TV2", "TV3", "TV4", "TV5" };
+		
 		frame = new JFrame("ListenToPierce Player");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		frame.getContentPane().setLayout(new BorderLayout());
+		
 		player = null;
 		playerPanel = new JPanel();
+		controlPanel = new JPanel();
+		
+		sources = new JComboBox<String>(sourceList);
+		sources.setActionCommand("sourcesList");
+		sources.addActionListener(this);
+		
+		// Establishing the connection to the server and to the JMF stream.
 		try
 		{
 			socket = new Socket("155.246.126.220", 3000);
@@ -59,10 +69,7 @@ public class PlayerClient implements ActionListener
 		{
 			e1.printStackTrace();
 		}
-		String[] sourceList = { "BigScreen", "TV1", "TV2", "TV3", "TV4", "TV5" };
-		controlPanel = new JPanel();
-		sources = new JComboBox<String>(sourceList);
-		sources.addActionListener(this);
+		
 		try
 		{
 			player = Manager.createRealizedPlayer(new MediaLocator("rtp://155.246.126.220:3001/audio"));
@@ -77,10 +84,19 @@ public class PlayerClient implements ActionListener
 			System.err.println("Got exception "+ e);
 			e.printStackTrace();
 		}
+		
 		controlPanel.add(sources);
 		frame.getContentPane().add("Center", playerPanel);
 		frame.getContentPane().add("South", controlPanel);
 		frame.pack();
+	}
+	
+	/**
+	 * Listens for a ChangeSourceDatagram, which indicates that the JMF has changed its audio source, and resets the player
+	 * in order to restart the JMF connection.
+	 */
+	public void run()
+	{
 		while(true)
 		{
 			try
@@ -106,21 +122,25 @@ public class PlayerClient implements ActionListener
 
 	public static void main(String[] args)
 	{
-		new PlayerClient();
+		new PlayerClient().run();
 
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		try
+		// Sends a ChangeSourceDatagram when the user selects a source from the sources combobox.
+		if(e.getActionCommand().equals("sourcesList"))
 		{
-			oos.writeObject(new ChangeSourceDatagram(sources.getSelectedItem()));
-			playerPanel.remove(controls);
-			frame.pack();
-		} catch (IOException e1)
-		{
-			e1.printStackTrace();
+			try
+			{
+				oos.writeObject(new ChangeSourceDatagram(sources.getSelectedItem()));
+				playerPanel.remove(controls);
+				frame.pack();
+			} catch (IOException e1)
+			{
+				e1.printStackTrace();
+			}
 		}
 	}
 

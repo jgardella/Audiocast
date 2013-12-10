@@ -1,7 +1,7 @@
 /**
  *
  */
-package test;
+package server;
 
 import java.io.Serializable;
 
@@ -37,6 +37,9 @@ public class ChangeSourceDatagram implements Serializable
 		}
 	}
 	
+	/**
+	 * @return Returns the source that the Datagram is holding.
+	 */
 	public Source getSource()
 	{
 		return source;

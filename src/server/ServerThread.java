@@ -1,7 +1,4 @@
-/**
- *
- */
-package test;
+package server;
 
 import java.net.Socket;
 import java.io.*;
@@ -33,11 +30,18 @@ public class ServerThread extends Thread
 		}
 	}
 	
+	/**
+	 * @return Returns the ip address of the client who is connected to this thread.
+	 */
 	public String getInfo()
 	{
 		return socket.getInetAddress().toString();
 	}
 	
+	/**
+	 *  Each thread waits to hear a ChangeSourceDatagram from its client. Once received, it changes its JMFManager's source
+	 *  accordingly and then sends back a Datagram to indicate that the source has been changed.
+	 */
 	public void run()
 	{
 		jmf.startTransmitting();
