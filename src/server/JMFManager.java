@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 
 import javax.media.CannotRealizeException;
+import javax.media.CaptureDeviceManager;
+import javax.media.CaptureDeviceInfo;
 import javax.media.DataSink;
 import javax.media.Format;
 import javax.media.Manager;
@@ -45,8 +47,7 @@ public class JMFManager
 		this.socketInfo = socketInfo;
 		try
 		{
-			File mediaFile = new File("C:/Users/Class2017/Desktop/gamejam/seahorsesong.wav");
-			ds = Manager.createDataSource(new MediaLocator(mediaFile.toURL()));
+			ds = Manager.createDataSource(((CaptureDeviceInfo)CaptureDeviceManager.getDeviceList(new AudioFormat(AudioFormat.LINEAR, 44100, 16, 2)).firstElement()).getLocator());
 			mediaLocator = new MediaLocator("rtp:/"+socketInfo+"/audio");
 			mediaProcessor = Manager.createRealizedProcessor(new ProcessorModel(ds, FORMATS, CONTENT_DESCRIPTOR));
 			dataSink = Manager.createDataSink(mediaProcessor.getDataOutput(), mediaLocator);
@@ -101,31 +102,33 @@ public class JMFManager
 	public void changeSource(Source source)
 	{
 		stopTransmitting();
-		File newSourceFile = null;
+		MediaLocator newSource = null;
 		switch(source)
 		{
 		case BIG:
-			newSourceFile = new File("C:/Users/Class2017/Desktop/gamejam/seahorsesong.wav");
+			newSource = ((CaptureDeviceInfo)CaptureDeviceManager.getDeviceList(new AudioFormat(AudioFormat.LINEAR, 44100, 16, 2)).firstElement()).getLocator();
 			break;
+		/*
 		case TV1:
-			newSourceFile = new File("C:/Users/Class2017/Desktop/TV1.wav");
+			newSource = new File("C:/Users/Class2017/Desktop/TV1.wav");
 			break;
 		case TV2:
-			newSourceFile = new File("TV2.wav");
+			newSource = new File("TV2.wav");
 			break;
 		case TV3:
-			newSourceFile = new File("TV3.wav");
+			newSource = new File("TV3.wav");
 			break;
 		case TV4:
-			newSourceFile = new File("TV4.wav");
+			newSource = new File("TV4.wav");
 			break;
 		case TV5:
-			newSourceFile = new File("TV5.wav");
+			newSource = new File("TV5.wav");
 			break;
+			*/
 		}
 		try
 		{
-			ds = Manager.createDataSource(new MediaLocator(newSourceFile.toURL()));
+			ds = Manager.createDataSource(newSource);
 			mediaLocator = new MediaLocator("rtp:/"+socketInfo+"/audio");
 			mediaProcessor = Manager.createRealizedProcessor(new ProcessorModel(ds, FORMATS, CONTENT_DESCRIPTOR));
 			dataSink = Manager.createDataSink(mediaProcessor.getDataOutput(), mediaLocator);
