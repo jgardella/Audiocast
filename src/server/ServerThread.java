@@ -57,7 +57,15 @@ public class ServerThread extends Thread
 				running = false;
 			}
 		}
-		server.removeThread(index);
+		try
+		{
+			jmf.stopTransmitting();
+			socket.close();
+			server.removeThread(index);
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 }
