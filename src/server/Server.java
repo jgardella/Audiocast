@@ -3,6 +3,7 @@
  */
 package server;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,6 +20,7 @@ import javax.media.NoPlayerException;
 import javax.media.Player;
 import javax.media.format.AudioFormat;
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 
 public class Server implements ActionListener
 {
@@ -26,41 +28,46 @@ public class Server implements ActionListener
 	private ServerSocket serverSocket;
 	private ArrayList<ServerThread> threads;
 	private JFrame frame;
-	private JPanel panel;
+	private JTabbedPane panel;
 	private JScrollPane sp;
 	private JComboBox<Source> sourceList;
 	private JTextArea area, availableSourcesArea;
-	private JLabel usersLabel;
 	private JButton addSource, removeSource, renameSource, playSource;
 	private ArrayList<Source> availableSources;
 	private Player audioPlayer;
+	private JPanel usersPanel, sourcePanel;
 	
 	public Server()
 	{
 		frame = new JFrame("Pierce Audiocast");
-		frame.setPreferredSize(new Dimension(235, 500));
+		frame.setPreferredSize(new Dimension(235, 350));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		panel = new JPanel();
-		panel.setPreferredSize(new Dimension(235, 500));
+		panel = new JTabbedPane();
+		panel.setPreferredSize(new Dimension(235, 350));
+		
+		sourcePanel = new JPanel();
+		sourcePanel.setPreferredSize(new Dimension(235, 350));
+		
+		usersPanel = new JPanel();
+		usersPanel.setPreferredSize(new Dimension(235, 350));
 		
 		area = new JTextArea();
 		area.setEditable(false);
 		area.setPreferredSize(new Dimension(175, 175));
 		
 		sp = new JScrollPane(area);
+		sp.setBorder(BorderFactory.createTitledBorder("Users"));
+				
+		usersPanel.add(sp);
 		
-		usersLabel = new JLabel("Users");
-		
-		panel.add(usersLabel);
-		panel.add(sp);
-		panel.add(new JLabel("Sources"));
+		sourcePanel.add(new JLabel("Sources"));
 		
 		sourceList = new JComboBox<Source>();
 		for(int i = 1; i < CaptureDeviceManager.getDeviceList(new AudioFormat(AudioFormat.LINEAR)).size() + 1; i++)
 			sourceList.addItem(new Source("Source "+i, i));
 		
-		panel.add(sourceList);
+		sourcePanel.add(sourceList);
 		
 		addSource = new JButton("Activate Source");
 		addSource.addActionListener(this);
@@ -78,16 +85,19 @@ public class Server implements ActionListener
 		playSource.addActionListener(this);
 		playSource.setActionCommand("play");
 		
-		panel.add(addSource);
-		panel.add(removeSource);
-		panel.add(renameSource);
-		panel.add(playSource);
+		sourcePanel.add(addSource);
+		sourcePanel.add(removeSource);
+		sourcePanel.add(renameSource);
+		sourcePanel.add(playSource);
 		
 		availableSourcesArea = new JTextArea();
 		availableSourcesArea.setPreferredSize(new Dimension(150, 125));
+		availableSourcesArea.setBorder(BorderFactory.createTitledBorder("Available Sources"));
 		
-		panel.add(new JLabel("Active Sources"));
-		panel.add(availableSourcesArea);
+		sourcePanel.add(availableSourcesArea);
+		
+		panel.addTab("Users", usersPanel);
+		panel.addTab("Source", sourcePanel);
 		
 		frame.add(panel);
 		frame.pack();
