@@ -5,36 +5,19 @@ package server;
 
 import java.io.Serializable;
 
-public class ChangeSourceDatagram implements Serializable
+public class ChangeSourceDatagram extends Datagram implements Serializable
 {
 	
-	public enum Source {BIG, TV1, TV2, TV3, TV4, TV5};
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3912125437089354682L;
 	private Source source;
 	
-	public ChangeSourceDatagram(Object object)
+	public ChangeSourceDatagram(Source source)
 	{
-		String s = (String) object;
-		switch(s)
-		{
-		case "BigScreen":
-			this.source = Source.BIG;
-			break;
-		case "TV1":
-			this.source = Source.TV1;
-			break;
-		case "TV2":
-			this.source = Source.TV2;
-			break;
-		case "TV3":
-			this.source = Source.TV3;
-			break;
-		case "TV4":
-			this.source = Source.TV4;
-			break;
-		case "TV5":
-			this.source = Source.TV5;
-			break;
-		}
+		super("ChangeSource");
+		this.source = source;
 	}
 	
 	/**

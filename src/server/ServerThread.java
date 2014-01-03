@@ -45,13 +45,20 @@ public class ServerThread extends Thread
 	public void run()
 	{
 		jmf.startTransmitting();
+		try
+		{
+			oos.writeObject(new SourceUpdateDatagram(server.getAvailableSources()));
+		} catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
 		while(running)
 		{
 			try
 			{
 				ChangeSourceDatagram gram = (ChangeSourceDatagram) ois.readObject();
 				jmf.changeSource(gram.getSource());
-				oos.writeObject(new ChangeSourceDatagram("changed"));
+				oos.writeObject(new ChangeSourceDatagram(new Source("changed", -1)));
 			} catch (ClassNotFoundException | IOException e)
 			{
 				running = false;
@@ -62,6 +69,17 @@ public class ServerThread extends Thread
 			jmf.stopTransmitting();
 			socket.close();
 			server.removeThread(index);
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void sendSourceUpdate()
+	{
+		try
+		{
+			oos.writeObject(new SourceUpdateDatagram(server.getAvailableSources()));
 		} catch (IOException e)
 		{
 			e.printStackTrace();

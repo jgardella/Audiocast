@@ -6,24 +6,19 @@ package client;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.Socket;
-import java.net.URL;
-import java.net.UnknownHostException;
 
 import javax.media.CannotRealizeException;
 import javax.media.NoPlayerException;
 import javax.media.Player;
 import javax.swing.*;
 import javax.media.*;
-import javax.media.format.AudioFormat;
-import javax.media.rtp.InvalidSessionAddressException;
-import javax.media.rtp.RTPManager;
-import javax.media.rtp.ReceiveStreamListener;
-import javax.media.rtp.SessionAddress;
+
 
 import server.ChangeSourceDatagram;
+import server.Datagram;
+import server.Source;
+import server.SourceUpdateDatagram;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -34,11 +29,12 @@ public class PlayerClient implements ActionListener
 	
 	private JFrame frame;
 	private JPanel playerPanel, controlPanel;
-	private JComboBox sources;
+	private JComboBox<Source> sources;
 	private JLabel statusLabel;
 	private JTextArea statusArea, consoleArea;
 	private JScrollPane consolePane;
 	private JButton consoleToggle;
+	private final String HOST_ADDRESS = "192.168.1.101";
 	
 	private Socket socket;
 	private ObjectOutputStream oos;
@@ -47,10 +43,8 @@ public class PlayerClient implements ActionListener
 	private Component controls;
 	
 	public PlayerClient()
-	{
-		String[] sourceList = { "BigScreen", "TV1", "TV2", "TV3", "TV4", "TV5" };
-		
-		frame = new JFrame("ListenToPierce Player");
+	{		
+		frame = new JFrame("Pierce Player");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		frame.getContentPane().setLayout(new BorderLayout());
@@ -60,7 +54,8 @@ public class PlayerClient implements ActionListener
 		playerPanel = new JPanel();
 		controlPanel = new JPanel();
 		
-		sources = new JComboBox<String>(sourceList);
+		
+		sources = new JComboBox<Source>(new Source[0]);
 		sources.setActionCommand("sourcesList");
 		sources.addActionListener(this);
 		
@@ -97,25 +92,33 @@ public class PlayerClient implements ActionListener
 	 */
 	public void run()
 	{
+		Datagram gram;
 		while(true)
 		{
 			try
 			{
-				if(ois.readObject() instanceof ChangeSourceDatagram)
+				gram = (Datagram)ois.readObject();
+				switch(gram.getType())
 				{
+				case "ChangeSource":
 					player.close();
-					player = Manager.createRealizedPlayer(new MediaLocator("rtp://155.246.126.220:3001/audio"));
+					player = Manager.createRealizedPlayer(new MediaLocator("rtp://"+HOST_ADDRESS+":3001/audio"));
 					if(player.getControlPanelComponent() != null)
 					{
 						controls = player.getControlPanelComponent();
 						playerPanel.add(controls);
 						frame.pack();
 					}
+					break;
+				case "SourceUpdate":
+					consoleArea.append("SourceUpdateDatagram recieved. Updating sourcelist.\n");
+					sources.setModel(new DefaultComboBoxModel<Source>(((SourceUpdateDatagram)gram).getAvailableSources()));
+					break;
 				}
 			} catch (ClassNotFoundException | NoPlayerException
 					| CannotRealizeException | IOException e)
 			{
-				consoleArea.setText(e.getMessage()+" exception thrown while reading object.\n");
+				consoleArea.append(e.getMessage()+" exception thrown while reading object.\n");
 			}
 		}
 	}
@@ -129,7 +132,7 @@ public class PlayerClient implements ActionListener
 			{
 				consoleArea.append("Connecting to server.\n");
 				statusArea.setText("Connecting to server.");
-				socket = new Socket("155.246.126.220", 3000);
+				socket = new Socket(HOST_ADDRESS, 3000);
 				oos = new ObjectOutputStream(socket.getOutputStream());
 				ois = new ObjectInputStream(socket.getInputStream());
 			} catch (IOException e1)
@@ -148,7 +151,7 @@ public class PlayerClient implements ActionListener
 			{
 				statusArea.setText("Connecting to stream.");
 				consoleArea.append("Connecting to stream.\n");
-				player = Manager.createRealizedPlayer(new MediaLocator("rtp://155.246.126.220:3001/audio"));
+				player = Manager.createRealizedPlayer(new MediaLocator("rtp://"+HOST_ADDRESS+":3001/audio"));
 				if(player.getControlPanelComponent() != null)
 				{
 					controls = player.getControlPanelComponent();
@@ -185,7 +188,7 @@ public class PlayerClient implements ActionListener
 		{
 			try
 			{
-				oos.writeObject(new ChangeSourceDatagram(sources.getSelectedItem()));
+				oos.writeObject(new ChangeSourceDatagram((Source)sources.getSelectedItem()));
 				playerPanel.remove(controls);
 				frame.pack();
 			} catch (IOException e1)

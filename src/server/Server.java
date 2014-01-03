@@ -4,13 +4,17 @@
 package server;
 
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 
+import javax.media.cdm.CaptureDeviceManager;
+import javax.media.format.AudioFormat;
 import javax.swing.*;
 
-public class Server
+public class Server implements ActionListener
 {
 	
 	private ServerSocket serverSocket;
@@ -18,26 +22,52 @@ public class Server
 	private JFrame frame;
 	private JPanel panel;
 	private JScrollPane sp;
-	private JTextArea area;
+	private JComboBox<Source> sourceList;
+	private JTextArea area, availableSourcesArea;
 	private JLabel usersLabel;
+	private JButton addSource, removeSource, renameSource;
+	private ArrayList<Source> availableSources;
 	
 	public Server()
 	{
 		frame = new JFrame("Pierce Audiocast");
-		frame.setPreferredSize(new Dimension(400, 250));
+		frame.setPreferredSize(new Dimension(235, 500));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		panel = new JPanel();
-		panel.setPreferredSize(new Dimension(400, 250));
+		panel.setPreferredSize(new Dimension(235, 500));
 		area = new JTextArea();
 		area.setEditable(false);
-		area.setPreferredSize(new Dimension(350, 175));
+		area.setPreferredSize(new Dimension(175, 175));
 		sp = new JScrollPane(area);
 		usersLabel = new JLabel("Users");
 		panel.add(usersLabel);
 		panel.add(sp);
+		panel.add(new JLabel("Sources"));
+		sourceList = new JComboBox<Source>();
+		for(int i = 1; i < CaptureDeviceManager.getDeviceList(new AudioFormat(AudioFormat.LINEAR)).size() + 1; i++)
+			sourceList.addItem(new Source("Source "+i, i));
+		panel.add(sourceList);
+		addSource = new JButton("Activate Source");
+		addSource.addActionListener(this);
+		addSource.setActionCommand("add");
+		removeSource = new JButton("Deactivate Source");
+		removeSource.addActionListener(this);
+		removeSource.setActionCommand("remove");
+		renameSource = new JButton("Rename Source");
+		renameSource.addActionListener(this);
+		renameSource.setActionCommand("rename");
+		panel.add(addSource);
+		panel.add(removeSource);
+		panel.add(renameSource);
+		availableSourcesArea = new JTextArea();
+		availableSourcesArea.setPreferredSize(new Dimension(150, 125));
+		panel.add(new JLabel("Active Sources"));
+		panel.add(availableSourcesArea);
 		frame.add(panel);
 		frame.pack();
 		frame.setVisible(true);
+		
+		availableSources = new ArrayList<Source>();
 	}
 	
 	/**
@@ -85,6 +115,54 @@ public class Server
 		{
 			area.append(thread.getInfo()+"\n");
 		}
+	}
+	
+	private void refreshAvailableSourceArea()
+	{
+		availableSourcesArea.setText("");
+		for(Source s : availableSources)
+			availableSourcesArea.append(s+"\n");
+		for(ServerThread thread : threads)
+			thread.sendSourceUpdate();
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e)
+	{
+		switch(e.getActionCommand())
+		{
+		case "add":
+			Source addSource = (Source)sourceList.getSelectedItem();
+			for(Source s : availableSources)
+				if(s.equals(addSource))
+					return;
+			availableSources.add(addSource);
+			refreshAvailableSourceArea();
+			break;
+		case "remove":
+			Source removeSource = (Source)sourceList.getSelectedItem();
+			for(int i = 0; i < availableSources.size(); i++)
+				if(availableSources.get(i).equals(removeSource))
+					availableSources.remove(i);
+			refreshAvailableSourceArea();
+			break;
+		case "rename":
+			String newName = JOptionPane.showInputDialog(frame, "New name:");
+			if(newName == null || newName.equals(""))
+				break;
+			for(int i = 0; i < availableSources.size(); i++)
+				if(availableSources.get(i).equals(sourceList.getSelectedItem()))
+					availableSources.get(i).setName(newName);
+			((Source)sourceList.getSelectedItem()).setName(newName);
+			sourceList.repaint();
+			refreshAvailableSourceArea();
+			break;
+		}
+	}
+	
+	public ArrayList<Source> getAvailableSources()
+	{
+		return availableSources;
 	}
 
 }
