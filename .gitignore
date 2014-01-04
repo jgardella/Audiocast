@@ -41,4 +41,4 @@ Thumbs.db
 
 # Misc. project files #
 #######################
-.src
+*.src
