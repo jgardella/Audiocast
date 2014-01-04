@@ -3,10 +3,14 @@
  */
 package server;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -20,7 +24,6 @@ import javax.media.NoPlayerException;
 import javax.media.Player;
 import javax.media.format.AudioFormat;
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 
 public class Server implements ActionListener
 {
@@ -39,6 +42,8 @@ public class Server implements ActionListener
 	
 	public Server()
 	{
+		availableSources = new ArrayList<Source>();
+		
 		frame = new JFrame("Pierce Audiocast");
 		frame.setPreferredSize(new Dimension(235, 350));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -64,8 +69,6 @@ public class Server implements ActionListener
 		sourcePanel.add(new JLabel("Sources"));
 		
 		sourceList = new JComboBox<Source>();
-		for(int i = 1; i < CaptureDeviceManager.getDeviceList(new AudioFormat(AudioFormat.LINEAR)).size() + 1; i++)
-			sourceList.addItem(new Source("Source "+i, i));
 		
 		sourcePanel.add(sourceList);
 		
@@ -96,14 +99,20 @@ public class Server implements ActionListener
 		
 		sourcePanel.add(availableSourcesArea);
 		
+		threads = new ArrayList<>();
+		
+		if(!readSources())
+		{
+			for(int i = 1; i < CaptureDeviceManager.getDeviceList(new AudioFormat(AudioFormat.LINEAR)).size() + 1; i++)
+				sourceList.addItem(new Source("Source "+i, i));
+		}
+		
 		panel.addTab("Users", usersPanel);
 		panel.addTab("Source", sourcePanel);
 		
 		frame.add(panel);
 		frame.pack();
 		frame.setVisible(true);
-		
-		availableSources = new ArrayList<Source>();
 	}
 	
 	/**
@@ -115,7 +124,6 @@ public class Server implements ActionListener
 		try
 		{
 			serverSocket = new ServerSocket(3000);
-			threads = new ArrayList<>();
 		} catch (IOException e)
 		{
 			e.printStackTrace();
@@ -163,6 +171,7 @@ public class Server implements ActionListener
 			availableSourcesArea.append(s+"\n");
 		for(ServerThread thread : threads)
 			thread.sendSourceUpdate();
+		saveSources();
 	}
 
 	@Override
@@ -231,6 +240,66 @@ public class Server implements ActionListener
 	public ArrayList<Source> getAvailableSources()
 	{
 		return availableSources;
+	}
+	
+	/**
+	 * Reads the saved sources from the file sources.src, if it exists.
+	 * @return Returns true if the sources file exists, false otherwise.
+	 */
+	private boolean readSources()
+	{
+		try
+		{
+			BufferedReader br = new BufferedReader(new FileReader("sources.src"));
+			String[] line;
+			while(br.ready())
+			{
+				line = br.readLine().split(" ");
+				Source src = new Source(line[0], Integer.parseInt(line[1]));
+				sourceList.addItem(src);
+				if(line[2].equals("true"))
+					availableSources.add(src);
+			}
+			br.close();
+			refreshAvailableSourceArea();
+		}
+		catch (FileNotFoundException e1)
+		{
+			return false;
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
+	private void saveSources()
+	{
+		BufferedWriter bw;
+		try
+		{
+			bw = new BufferedWriter(new FileWriter("sources.src"));
+			bw.write("");
+			for(int i = 0; i < CaptureDeviceManager.getDeviceList().size(); i++)
+			{
+				Source src = sourceList.getItemAt(i);
+				bw.append(src.toString() + " " + src.getIndex());
+				boolean found = false;
+				for(Source s : availableSources)
+					if(s.equals(src))
+					{
+						bw.append(" true\n");
+						found = true;
+					}
+				if(!found)
+					bw.append(" false\n");
+			}
+			bw.close();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 }
