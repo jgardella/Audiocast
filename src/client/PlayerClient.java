@@ -28,7 +28,7 @@ public class PlayerClient implements ActionListener
 {
 	
 	private JFrame frame;
-	private JPanel playerPanel, controlPanel;
+	private JPanel mainPanel, playerPanel, controlPanel;
 	private JComboBox<Source> sources;
 	private JLabel statusLabel;
 	private JTextArea statusArea, consoleArea;
@@ -44,17 +44,19 @@ public class PlayerClient implements ActionListener
 	
 	public PlayerClient()
 	{		
-		frame = new JFrame("Pierce Player");
+		frame = new JFrame("Audiocast Player");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		frame.getContentPane().setLayout(new BorderLayout());
-		frame.setPreferredSize(new Dimension(150, 160));
+		frame.setPreferredSize(new Dimension(150, 185));
+		frame.setResizable(true);
 		
 		player = null;
+		mainPanel = new JPanel();
 		playerPanel = new JPanel();
 		controlPanel = new JPanel();
-		
-		
+		controlPanel.setPreferredSize(new Dimension(125, 220));
+				
 		sources = new JComboBox<Source>(new Source[0]);
 		sources.setActionCommand("sourcesList");
 		sources.addActionListener(this);
@@ -79,8 +81,12 @@ public class PlayerClient implements ActionListener
 		controlPanel.add(sources);
 		controlPanel.add(consoleToggle);
 		controlPanel.add(consolePane);
-		frame.getContentPane().add("North", playerPanel);
-		frame.getContentPane().add("Center", controlPanel);
+		
+		mainPanel.add(new JLabel("Audiocast Player"));
+		mainPanel.add(playerPanel);
+		mainPanel.add(controlPanel);
+		
+		frame.add(mainPanel);
 		frame.pack();
 		
 		connect();
@@ -205,12 +211,12 @@ public class PlayerClient implements ActionListener
 			if(currentVis)
 			{
 				consoleToggle.setText("Show Console");
-				frame.setPreferredSize(new Dimension(150, 155));
+				frame.setPreferredSize(new Dimension(150, 185));
 			}
 			else
 			{
 				consoleToggle.setText("Hide Console");
-				frame.setPreferredSize(new Dimension(150, 285));
+				frame.setPreferredSize(new Dimension(150, 315));
 			}
 			frame.pack();
 			break;

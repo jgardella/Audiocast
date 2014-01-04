@@ -31,7 +31,8 @@ public class Server implements ActionListener
 	private ServerSocket serverSocket;
 	private ArrayList<ServerThread> threads;
 	private JFrame frame;
-	private JTabbedPane panel;
+	private JPanel mainPanel;
+	private JTabbedPane tabPane;
 	private JScrollPane sp;
 	private JComboBox<Source> sourceList;
 	private JTextArea area, availableSourcesArea;
@@ -45,17 +46,17 @@ public class Server implements ActionListener
 		availableSources = new ArrayList<Source>();
 		
 		frame = new JFrame("Pierce Audiocast");
-		frame.setPreferredSize(new Dimension(235, 350));
+		frame.setPreferredSize(new Dimension(235, 375));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		panel = new JTabbedPane();
-		panel.setPreferredSize(new Dimension(235, 350));
+		tabPane = new JTabbedPane();
+		tabPane.setPreferredSize(new Dimension(225, 375));
 		
 		sourcePanel = new JPanel();
-		sourcePanel.setPreferredSize(new Dimension(235, 350));
+		sourcePanel.setPreferredSize(new Dimension(225, 375));
 		
 		usersPanel = new JPanel();
-		usersPanel.setPreferredSize(new Dimension(235, 350));
+		usersPanel.setPreferredSize(new Dimension(225, 375));
 		
 		area = new JTextArea();
 		area.setEditable(false);
@@ -107,10 +108,14 @@ public class Server implements ActionListener
 				sourceList.addItem(new Source("Source "+i, i));
 		}
 		
-		panel.addTab("Users", usersPanel);
-		panel.addTab("Source", sourcePanel);
+		tabPane.addTab("Users", usersPanel);
+		tabPane.addTab("Source", sourcePanel);
 		
-		frame.add(panel);
+		mainPanel = new JPanel();
+		mainPanel.add(new JLabel("Audiocast Server"));
+		mainPanel.add(tabPane);
+		
+		frame.add(mainPanel);
 		frame.pack();
 		frame.setVisible(true);
 	}
@@ -198,8 +203,8 @@ public class Server implements ActionListener
 			break;
 		// Renames the selected source to another name.
 		case "rename":
-			String newName = JOptionPane.showInputDialog(frame, "New name:");
-			if(newName == null || newName.equals(""))
+			String newName = JOptionPane.showInputDialog(frame, "New name:                              (no commas)");
+			if(newName == null || newName.equals("") || newName.indexOf(',') != -1)
 				break;
 			for(int i = 0; i < availableSources.size(); i++)
 				if(availableSources.get(i).equals(sourceList.getSelectedItem()))
@@ -254,7 +259,7 @@ public class Server implements ActionListener
 			String[] line;
 			while(br.ready())
 			{
-				line = br.readLine().split(" ");
+				line = br.readLine().split(",");
 				Source src = new Source(line[0], Integer.parseInt(line[1]));
 				sourceList.addItem(src);
 				if(line[2].equals("true"))
@@ -274,6 +279,9 @@ public class Server implements ActionListener
 		return true;
 	}
 	
+	/**
+	 * Saves the sources and if they are available or not to the file sources.src.
+	 */
 	private void saveSources()
 	{
 		BufferedWriter bw;
@@ -284,16 +292,16 @@ public class Server implements ActionListener
 			for(int i = 0; i < CaptureDeviceManager.getDeviceList().size(); i++)
 			{
 				Source src = sourceList.getItemAt(i);
-				bw.append(src.toString() + " " + src.getIndex());
+				bw.append(src.toString() + "," + src.getIndex());
 				boolean found = false;
 				for(Source s : availableSources)
 					if(s.equals(src))
 					{
-						bw.append(" true\n");
+						bw.append(",true\n");
 						found = true;
 					}
 				if(!found)
-					bw.append(" false\n");
+					bw.append(",false\n");
 			}
 			bw.close();
 		} catch (IOException e)

@@ -38,3 +38,7 @@ Thumbs.db
 .classpath
 .project
 .settings
+
+# Misc. project files #
+#######################
+.src
