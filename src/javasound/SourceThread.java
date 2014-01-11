@@ -38,9 +38,8 @@ public class SourceThread extends Thread
 		try
 		{
 			TargetDataLine line = (TargetDataLine) AudioSystem.getLine(source.getTargetLineInfo()[0]);
-			System.out.println(line.getFormat());
-			b = new byte[line.getBufferSize() / 50];
-			line.open(new AudioFormat(44100, 16, 2, true, false));
+			b = new byte[line.getBufferSize()];
+			line.open(new AudioFormat(192000, 16, 2, true, true));
 			line.start();
 			while(true)
 			{

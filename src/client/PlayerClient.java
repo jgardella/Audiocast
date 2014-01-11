@@ -45,7 +45,7 @@ public class PlayerClient implements ActionListener
 	public PlayerClient()
 	{	
 		play = false;
-		AudioFormat format = new AudioFormat(8000, 16, 1, true, true);
+		AudioFormat format = new AudioFormat(192000, 16, 2, true, true);
 		try
 		{
 			output = AudioSystem.getSourceDataLine(format);

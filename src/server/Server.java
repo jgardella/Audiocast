@@ -44,7 +44,7 @@ public class Server implements ActionListener
 	public Server()
 	{
 		
-		AudioFormat format = new AudioFormat(8000, 16, 1, true, true);
+		AudioFormat format = new AudioFormat(192000, 16, 2, true, true);
 		try
 		{
 			serverOutput = AudioSystem.getSourceDataLine(format);
@@ -180,9 +180,10 @@ public class Server implements ActionListener
 	}
 	
 	/**
-	 * Refreshes the text in available sources and sends a source update datagram to through each serverthread.
+	 * Refreshes the text in available source, sends a source update datagram through each ServerThread, and saves the sources
+	 * to the sources.src file.
 	 */
-	private void refreshAvailableSourceArea()
+	private void sourceUpdate()
 	{
 		availableSourcesArea.setText("");
 		for(Source s : availableSources)
@@ -204,7 +205,7 @@ public class Server implements ActionListener
 				if(s.equals(addSource))
 					return;
 			availableSources.add(addSource);
-			refreshAvailableSourceArea();
+			sourceUpdate();
 			break;
 		// Removes the selected source from the available sources list.
 		case "remove":
@@ -212,7 +213,7 @@ public class Server implements ActionListener
 			for(int i = 0; i < availableSources.size(); i++)
 				if(availableSources.get(i).equals(removeSource))
 					availableSources.remove(i);
-			refreshAvailableSourceArea();
+			sourceUpdate();
 			break;
 		// Renames the selected source to another name.
 		case "rename":
@@ -224,11 +225,11 @@ public class Server implements ActionListener
 					availableSources.get(i).setName(newName);
 			((Source)sourceList.getSelectedItem()).setName(newName);
 			sourceList.repaint();
-			refreshAvailableSourceArea();
+			sourceUpdate();
 			break;
 		// Plays the selected source, or stops it if it is already playing.
 		case "play":
-			int index = ((Source)sourceList.getSelectedItem()).getIndex() - 1;
+			int index = ((Source)sourceList.getSelectedItem()).getIndex();
 			if(playSource.getText() == "Play Source")
 			{
 				sourceList.setEnabled(false);
@@ -272,7 +273,7 @@ public class Server implements ActionListener
 					availableSources.add(src);
 			}
 			br.close();
-			refreshAvailableSourceArea();
+			sourceUpdate();
 		}
 		catch (FileNotFoundException e1)
 		{
@@ -317,7 +318,7 @@ public class Server implements ActionListener
 	}
 	
 	/**
-	 * Iteratres through all ServerThreads ands writes the byte array b to each one which has the source specified by
+	 * Iterates over all ServerThreads ands writes the byte array b to each one which has the source specified by
 	 * sourceIndex selected.
 	 * @param b The byte array to be written.
 	 * @param sourceIndex The index of the source which the byte array is from and which specifies which threads should be written to.
@@ -325,11 +326,8 @@ public class Server implements ActionListener
 	public void writeByteBuffers(byte[] b, int sourceIndex)
 	{
 		for(ServerThread thread : threads)
-		{
-			System.out.println(thread.getSourceIndex());
 			if(thread.getSourceIndex() == sourceIndex)
 				thread.writeByteBuffer(b);
-		}
 	}
 
 }
