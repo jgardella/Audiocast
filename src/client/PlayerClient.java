@@ -8,13 +8,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-import javax.media.CannotRealizeException;
-import javax.media.NoPlayerException;
-import javax.media.Player;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
-import javax.media.*;
 
-
+import server.ByteBufferDatagram;
 import server.ChangeSourceDatagram;
 import server.Datagram;
 import server.Source;
@@ -33,17 +33,29 @@ public class PlayerClient implements ActionListener
 	private JLabel statusLabel;
 	private JTextArea statusArea, consoleArea;
 	private JScrollPane consolePane;
-	private JButton consoleToggle;
+	private JButton consoleToggle, playButton;
 	private final String HOST_ADDRESS = "192.168.1.101";
+	private SourceDataLine output;
+	private boolean play;
 	
 	private Socket socket;
 	private ObjectOutputStream oos;
 	private ObjectInputStream ois;
-	private Player player;
-	private Component controls;
 	
 	public PlayerClient()
-	{		
+	{	
+		play = false;
+		AudioFormat format = new AudioFormat(8000, 16, 1, true, true);
+		try
+		{
+			output = AudioSystem.getSourceDataLine(format);
+			output.open(format);
+			output.start();
+		} catch (LineUnavailableException e)
+		{
+			e.printStackTrace();
+		}
+		
 		frame = new JFrame("Audiocast Player");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
@@ -51,11 +63,15 @@ public class PlayerClient implements ActionListener
 		frame.setPreferredSize(new Dimension(150, 185));
 		frame.setResizable(true);
 		
-		player = null;
 		mainPanel = new JPanel();
 		playerPanel = new JPanel();
 		controlPanel = new JPanel();
 		controlPanel.setPreferredSize(new Dimension(125, 220));
+		
+		playButton = new JButton("Play");
+		playButton.setActionCommand("play");
+		playButton.addActionListener(this);
+		playerPanel.add(playButton);
 				
 		sources = new JComboBox<Source>(new Source[0]);
 		sources.setActionCommand("sourcesList");
@@ -98,40 +114,35 @@ public class PlayerClient implements ActionListener
 	 */
 	public void run()
 	{
-		Datagram gram;
 		while(true)
 		{
 			try
 			{
-				gram = (Datagram)ois.readObject();
+				Datagram gram = (Datagram)ois.readObject();
 				switch(gram.getType())
 				{
-				case "ChangeSource":
-					player.close();
-					player = Manager.createRealizedPlayer(new MediaLocator("rtp://"+HOST_ADDRESS+":3001/audio"));
-					if(player.getControlPanelComponent() != null)
-					{
-						controls = player.getControlPanelComponent();
-						playerPanel.add(controls);
-						frame.pack();
-					}
-					break;
 				case "SourceUpdate":
 					consoleArea.append("SourceUpdateDatagram recieved. Updating sourcelist.\n");
 					sources.setModel(new DefaultComboBoxModel<Source>(((SourceUpdateDatagram)gram).getAvailableSources()));
 					break;
+				case "ByteBuffer":
+					ByteBufferDatagram bbgram = ((ByteBufferDatagram)gram);
+					consoleArea.append("ByteBufferDatagram recieved. Playing bytes.\n");
+					if(play)
+						output.write(bbgram.getBuffer(), 0, bbgram.getBuffer().length);
 				}
-			} catch (ClassNotFoundException | NoPlayerException
-					| CannotRealizeException | IOException e)
+			} catch (ClassNotFoundException | IOException e)
 			{
 				consoleArea.append(e.getMessage()+" exception thrown while reading object.\n");
 			}
 		}
 	}
 	
+	/**
+	 * Establishes connection to the server.
+	 */
 	private void connect()
 	{
-		// Establishing the connection to the server and to the JMF stream.
 		while(socket == null)
 		{
 			try
@@ -145,30 +156,6 @@ public class PlayerClient implements ActionListener
 			{
 				consoleArea.append("Connection failed.\n");
 				statusArea.setText("Connection failed.");
-				if(JOptionPane.showConfirmDialog(frame, "Failed to connect to server. Retry?", "Connection Failed",
-						JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
-					System.exit(0);
-			}
-		}
-		boolean streamConnected = false;
-		while(!streamConnected)
-		{
-			try
-			{
-				statusArea.setText("Connecting to stream.");
-				consoleArea.append("Connecting to stream.\n");
-				player = Manager.createRealizedPlayer(new MediaLocator("rtp://"+HOST_ADDRESS+":3001/audio"));
-				if(player.getControlPanelComponent() != null)
-				{
-					controls = player.getControlPanelComponent();
-					playerPanel.add(controls);
-				}
-				streamConnected = true;
-			}
-			catch(Exception e)
-			{
-				statusArea.setText("Stream connection failed.");
-				consoleArea.append("Stream connection failed.\n");
 				if(JOptionPane.showConfirmDialog(frame, "Failed to connect to server. Retry?", "Connection Failed",
 						JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
 					System.exit(0);
@@ -195,7 +182,6 @@ public class PlayerClient implements ActionListener
 			try
 			{
 				oos.writeObject(new ChangeSourceDatagram((Source)sources.getSelectedItem()));
-				playerPanel.remove(controls);
 				frame.pack();
 			} catch (IOException e1)
 			{
@@ -220,6 +206,19 @@ public class PlayerClient implements ActionListener
 			}
 			frame.pack();
 			break;
+		}
+		case "play":
+		{
+			if(!play)
+			{
+				play = true;
+				playButton.setText("Stop");
+			}
+			else
+			{
+				play = false;
+				playButton.setText("Play");
+			}
 		}
 		}
 	}

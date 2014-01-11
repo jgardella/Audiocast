@@ -20,6 +20,9 @@ public class SourceUpdateDatagram extends Datagram implements Serializable
 			sourceList[i] = sources.get(i);
 	}
 	
+	/**
+	 * @return Returns the list of available sources stored in the datagram.
+	 */
 	public Source[] getAvailableSources()
 	{
 		return sourceList;

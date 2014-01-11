@@ -18,6 +18,9 @@ public abstract class Datagram implements Serializable
 		this.type = type;
 	}
 	
+	/**
+	 * @return Returns a String holding the type of the datagram.
+	 */
 	public String getType()
 	{
 		return type;

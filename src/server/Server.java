@@ -15,14 +15,13 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 
-import javax.media.cdm.CaptureDeviceManager;
-import javax.media.CannotRealizeException;
-import javax.media.CaptureDeviceInfo;
-import javax.media.Manager;
-import javax.media.MediaLocator;
-import javax.media.NoPlayerException;
-import javax.media.Player;
-import javax.media.format.AudioFormat;
+import javasound.JavasoundManager;
+import javasound.SourceThread;
+
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
 
 public class Server implements ActionListener
@@ -38,11 +37,24 @@ public class Server implements ActionListener
 	private JTextArea area, availableSourcesArea;
 	private JButton addSource, removeSource, renameSource, playSource;
 	private ArrayList<Source> availableSources;
-	private Player audioPlayer;
 	private JPanel usersPanel, sourcePanel;
+	private JavasoundManager jsm;
+	private SourceDataLine serverOutput;
 	
 	public Server()
 	{
+		
+		AudioFormat format = new AudioFormat(8000, 16, 1, true, true);
+		try
+		{
+			serverOutput = AudioSystem.getSourceDataLine(format);
+		} catch (LineUnavailableException e)
+		{
+			e.printStackTrace();
+		}
+		
+		jsm = new JavasoundManager(this, serverOutput);
+			
 		availableSources = new ArrayList<Source>();
 		
 		frame = new JFrame("Pierce Audiocast");
@@ -104,8 +116,9 @@ public class Server implements ActionListener
 		
 		if(!readSources())
 		{
-			for(int i = 1; i < CaptureDeviceManager.getDeviceList(new AudioFormat(AudioFormat.LINEAR)).size() + 1; i++)
-				sourceList.addItem(new Source("Source "+i, i));
+			ArrayList<SourceThread> threads = jsm.getSourceList();
+			for(int i = 0; i < threads.size(); i++)
+				sourceList.addItem(new Source("Source "+(i+1), i));
 		}
 		
 		tabPane.addTab("Users", usersPanel);
@@ -215,25 +228,18 @@ public class Server implements ActionListener
 			break;
 		// Plays the selected source, or stops it if it is already playing.
 		case "play":
-			try
+			int index = ((Source)sourceList.getSelectedItem()).getIndex() - 1;
+			if(playSource.getText() == "Play Source")
 			{
-				if(playSource.getText() == "Play Source")
-				{
-					int index = ((Source)sourceList.getSelectedItem()).getIndex();
-					MediaLocator source = ((CaptureDeviceInfo)CaptureDeviceManager.getDeviceList(new AudioFormat(AudioFormat.LINEAR)).get(index-1)).getLocator();
-					audioPlayer = Manager.createRealizedPlayer(source);
-					audioPlayer.start();
-					playSource.setText("Stop Playing");
-				}
-				else
-				{
-					audioPlayer.stop();
-					audioPlayer.close();
-					playSource.setText("Play Source");
-				}
-			} catch (NoPlayerException | CannotRealizeException | IOException e1)
+				sourceList.setEnabled(false);
+				jsm.getSourceList().get(index).setOutput(true);
+				playSource.setText("Stop Playing");
+			}
+			else
 			{
-				e1.printStackTrace();
+				sourceList.setEnabled(true);
+				jsm.getSourceList().get(index).setOutput(false);
+				playSource.setText("Play Source");
 			}
 			break;
 		}
@@ -289,7 +295,7 @@ public class Server implements ActionListener
 		{
 			bw = new BufferedWriter(new FileWriter("sources.src"));
 			bw.write("");
-			for(int i = 0; i < CaptureDeviceManager.getDeviceList().size(); i++)
+			for(int i = 0; i < jsm.getNumSources(); i++)
 			{
 				Source src = sourceList.getItemAt(i);
 				bw.append(src.toString() + "," + src.getIndex());
@@ -307,6 +313,22 @@ public class Server implements ActionListener
 		} catch (IOException e)
 		{
 			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Iteratres through all ServerThreads ands writes the byte array b to each one which has the source specified by
+	 * sourceIndex selected.
+	 * @param b The byte array to be written.
+	 * @param sourceIndex The index of the source which the byte array is from and which specifies which threads should be written to.
+	 */
+	public void writeByteBuffers(byte[] b, int sourceIndex)
+	{
+		for(ServerThread thread : threads)
+		{
+			System.out.println(thread.getSourceIndex());
+			if(thread.getSourceIndex() == sourceIndex)
+				thread.writeByteBuffer(b);
 		}
 	}
 

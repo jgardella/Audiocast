@@ -9,21 +9,20 @@ public class ServerThread extends Thread
 	private Socket socket;
 	private ObjectOutputStream oos;
 	private ObjectInputStream ois;
-	private JMFManager jmf;
 	private boolean running = true;
-	private int index;
+	private int serverThreadIndex, sourceIndex;
 	private Server server;
 	
 	public ServerThread(Socket socket, int index, Server server)
 	{
-		this.index = index;
+		this.serverThreadIndex = index;
 		this.socket = socket;
 		this.server = server;
+		sourceIndex = -1;
 		try
 		{
 			oos = new ObjectOutputStream(socket.getOutputStream());
 			ois = new ObjectInputStream(socket.getInputStream());
-			jmf = new JMFManager(socket.getInetAddress().toString()+":3001");
 		} catch (IOException e)
 		{
 			e.printStackTrace();
@@ -44,7 +43,6 @@ public class ServerThread extends Thread
 	 */
 	public void run()
 	{
-		jmf.startTransmitting();
 		try
 		{
 			oos.writeObject(new SourceUpdateDatagram(server.getAvailableSources()));
@@ -57,8 +55,7 @@ public class ServerThread extends Thread
 			try
 			{
 				ChangeSourceDatagram gram = (ChangeSourceDatagram) ois.readObject();
-				jmf.changeSource(gram.getSource());
-				oos.writeObject(new ChangeSourceDatagram(new Source("changed", -1)));
+				sourceIndex = gram.getSource().getIndex();
 			} catch (ClassNotFoundException | IOException e)
 			{
 				running = false;
@@ -66,24 +63,51 @@ public class ServerThread extends Thread
 		}
 		try
 		{
-			jmf.stopTransmitting();
 			socket.close();
-			server.removeThread(index);
+			server.removeThread(serverThreadIndex);
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Sends a SourceUpdateDatagram to the thread's client, which contains a list of the available sources.
+	 */
+	public void sendSourceUpdate()
+	{
+		try
+		{
+			oos.writeObject(new SourceUpdateDatagram(server.getAvailableSources()));
+			oos.reset();
 		} catch (IOException e)
 		{
 			e.printStackTrace();
 		}
 	}
 
-	public void sendSourceUpdate()
+	/**
+	 * Puts the byte buffer specified by b into a ByteBufferDatagram and writes it to the thread's client.
+	 * @param b The byte buffer to be written to the thread's client.
+	 */
+	public void writeByteBuffer(byte[] b)
 	{
 		try
 		{
-			oos.writeObject(new SourceUpdateDatagram(server.getAvailableSources()));
+			oos.writeObject(new ByteBufferDatagram(b));
+			oos.reset();
 		} catch (IOException e)
 		{
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * @return Returns the thread's sourceIndex, which specifies which source the client has selected.
+	 */
+	public int getSourceIndex()
+	{
+		return sourceIndex;
 	}
 	
 }
