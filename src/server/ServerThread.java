@@ -46,6 +46,7 @@ public class ServerThread extends Thread
 		try
 		{
 			oos.writeObject(new SourceUpdateDatagram(server.getAvailableSources()));
+			oos.reset();
 		} catch (IOException e1)
 		{
 			e1.printStackTrace();
@@ -78,6 +79,7 @@ public class ServerThread extends Thread
 	{
 		try
 		{
+			sourceIndex = -1;
 			oos.writeObject(new SourceUpdateDatagram(server.getAvailableSources()));
 			oos.reset();
 		} catch (IOException e)

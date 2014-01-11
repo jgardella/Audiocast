@@ -61,7 +61,7 @@ public class PlayerClient implements ActionListener
 		frame.setVisible(true);
 		frame.getContentPane().setLayout(new BorderLayout());
 		frame.setPreferredSize(new Dimension(150, 185));
-		frame.setResizable(true);
+		frame.setResizable(false);
 		
 		mainPanel = new JPanel();
 		playerPanel = new JPanel();
@@ -122,8 +122,11 @@ public class PlayerClient implements ActionListener
 				switch(gram.getType())
 				{
 				case "SourceUpdate":
+					JOptionPane.showMessageDialog(frame, "Source list updated. Please reselect source.",
+							"Source List Updated", JOptionPane.INFORMATION_MESSAGE);
 					consoleArea.append("SourceUpdateDatagram recieved. Updating sourcelist.\n");
 					sources.setModel(new DefaultComboBoxModel<Source>(((SourceUpdateDatagram)gram).getAvailableSources()));
+					playButton.setText("Play");
 					break;
 				case "ByteBuffer":
 					ByteBufferDatagram bbgram = ((ByteBufferDatagram)gram);

@@ -58,17 +58,18 @@ public class Server implements ActionListener
 		availableSources = new ArrayList<Source>();
 		
 		frame = new JFrame("Pierce Audiocast");
-		frame.setPreferredSize(new Dimension(235, 375));
+		frame.setPreferredSize(new Dimension(235, 400));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setResizable(false);
 		
 		tabPane = new JTabbedPane();
-		tabPane.setPreferredSize(new Dimension(225, 375));
+		tabPane.setPreferredSize(new Dimension(225, 400));
 		
 		sourcePanel = new JPanel();
-		sourcePanel.setPreferredSize(new Dimension(225, 375));
+		sourcePanel.setPreferredSize(new Dimension(225, 400));
 		
 		usersPanel = new JPanel();
-		usersPanel.setPreferredSize(new Dimension(225, 375));
+		usersPanel.setPreferredSize(new Dimension(225, 400));
 		
 		area = new JTextArea();
 		area.setEditable(false);
@@ -82,6 +83,7 @@ public class Server implements ActionListener
 		sourcePanel.add(new JLabel("Sources"));
 		
 		sourceList = new JComboBox<Source>();
+		sourceList.setPrototypeDisplayValue(new Source("XXXXXXXXXXXXXXXXXXXXXX", -1));
 		
 		sourcePanel.add(sourceList);
 		
