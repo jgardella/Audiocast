@@ -60,7 +60,7 @@ public class PlayerClient implements ActionListener
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		frame.getContentPane().setLayout(new BorderLayout());
-		frame.setPreferredSize(new Dimension(150, 185));
+		frame.setPreferredSize(new Dimension(150, 205));
 		frame.setResizable(false);
 		
 		mainPanel = new JPanel();
@@ -68,31 +68,43 @@ public class PlayerClient implements ActionListener
 		controlPanel = new JPanel();
 		controlPanel.setPreferredSize(new Dimension(125, 220));
 		
+		mainPanel.setBackground(new Color(54, 201, 153));
+		playerPanel.setBackground(new Color(54, 201, 153));
+		controlPanel.setBackground(new Color(54, 201, 153));
+
+		
 		playButton = new JButton("Play");
 		playButton.setActionCommand("play");
 		playButton.addActionListener(this);
+		playButton.setBackground(new Color(127, 219, 207));
 		playerPanel.add(playButton);
 				
 		sources = new JComboBox<Source>(new Source[0]);
 		sources.setActionCommand("sourcesList");
 		sources.addActionListener(this);
+		sources.setBackground(new Color(127, 219, 207));
+
 		
 		statusLabel = new JLabel("Status:");
 		
 		statusArea = new JTextArea();
 		statusArea.setEditable(false);
+		statusArea.setBackground(new Color(127, 219, 207));
+		
 		controlPanel.add(statusLabel);
 		controlPanel.add(statusArea);
 		
 		consoleToggle = new JButton("Show Console");
 		consoleToggle.setActionCommand("consoleToggle");
 		consoleToggle.addActionListener(this);
+		consoleToggle.setBackground(new Color(127, 219, 207));
 		
 		consoleArea = new JTextArea();
 		consoleArea.setEditable(false);
 		consolePane = new JScrollPane(consoleArea);
 		consolePane.setPreferredSize(new Dimension(125, 125));
 		consolePane.setVisible(false);
+		consoleArea.setBackground(new Color(127, 219, 207));
 		
 		controlPanel.add(sources);
 		controlPanel.add(consoleToggle);
@@ -200,12 +212,12 @@ public class PlayerClient implements ActionListener
 			if(currentVis)
 			{
 				consoleToggle.setText("Show Console");
-				frame.setPreferredSize(new Dimension(150, 185));
+				frame.setPreferredSize(new Dimension(150, 205));
 			}
 			else
 			{
 				consoleToggle.setText("Hide Console");
-				frame.setPreferredSize(new Dimension(150, 315));
+				frame.setPreferredSize(new Dimension(150, 325));
 			}
 			frame.pack();
 			break;

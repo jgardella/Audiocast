@@ -3,6 +3,7 @@
  */
 package server;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -61,22 +62,27 @@ public class Server implements ActionListener
 		frame.setPreferredSize(new Dimension(235, 400));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setResizable(false);
-		
+
 		tabPane = new JTabbedPane();
 		tabPane.setPreferredSize(new Dimension(225, 400));
+		tabPane.setBackground(new Color(54, 201, 153));
 		
 		sourcePanel = new JPanel();
 		sourcePanel.setPreferredSize(new Dimension(225, 400));
+		sourcePanel.setBackground(new Color(54, 201, 153));
 		
 		usersPanel = new JPanel();
 		usersPanel.setPreferredSize(new Dimension(225, 400));
+		usersPanel.setBackground(new Color(54, 201, 153));
 		
 		area = new JTextArea();
 		area.setEditable(false);
 		area.setPreferredSize(new Dimension(175, 175));
+		area.setBackground(new Color(127, 219, 207));
 		
 		sp = new JScrollPane(area);
 		sp.setBorder(BorderFactory.createTitledBorder("Users"));
+		sp.setBackground(new Color(127, 219, 207));
 				
 		usersPanel.add(sp);
 		
@@ -84,24 +90,30 @@ public class Server implements ActionListener
 		
 		sourceList = new JComboBox<Source>();
 		sourceList.setPrototypeDisplayValue(new Source("XXXXXXXXXXXXXXXXXXXXXX", -1));
+		sourceList.setBackground(new Color(127, 219, 207));
 		
 		sourcePanel.add(sourceList);
 		
 		addSource = new JButton("Activate Source");
 		addSource.addActionListener(this);
 		addSource.setActionCommand("add");
-		
+		addSource.setBackground(new Color(127, 219, 207));
+	
 		removeSource = new JButton("Deactivate Source");
 		removeSource.addActionListener(this);
 		removeSource.setActionCommand("remove");
+		removeSource.setBackground(new Color(127, 219, 207));
+
 		
 		renameSource = new JButton("Rename Source");
 		renameSource.addActionListener(this);
 		renameSource.setActionCommand("rename");
+		renameSource.setBackground(new Color(127, 219, 207));
 		
 		playSource = new JButton("Play Source");
 		playSource.addActionListener(this);
 		playSource.setActionCommand("play");
+		playSource.setBackground(new Color(127, 219, 207));
 		
 		sourcePanel.add(addSource);
 		sourcePanel.add(removeSource);
@@ -111,6 +123,8 @@ public class Server implements ActionListener
 		availableSourcesArea = new JTextArea();
 		availableSourcesArea.setPreferredSize(new Dimension(150, 125));
 		availableSourcesArea.setBorder(BorderFactory.createTitledBorder("Available Sources"));
+		availableSourcesArea.setEditable(false);
+		availableSourcesArea.setBackground(new Color(127, 219, 207));
 		
 		sourcePanel.add(availableSourcesArea);
 		
@@ -128,6 +142,7 @@ public class Server implements ActionListener
 		
 		mainPanel = new JPanel();
 		mainPanel.add(new JLabel("Audiocast Server"));
+		mainPanel.setBackground(new Color(54, 201, 153));
 		mainPanel.add(tabPane);
 		
 		frame.add(mainPanel);
