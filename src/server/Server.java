@@ -45,7 +45,7 @@ public class Server implements ActionListener
 	public Server()
 	{
 		
-		AudioFormat format = new AudioFormat(192000, 16, 2, true, true);
+		AudioFormat format = new AudioFormat(44100, 16, 2, true, true);
 		try
 		{
 			serverOutput = AudioSystem.getSourceDataLine(format);
@@ -53,6 +53,8 @@ public class Server implements ActionListener
 		{
 			e.printStackTrace();
 		}
+		
+		threads = new ArrayList<>();
 		
 		jsm = new JavasoundManager(this, serverOutput);
 			
@@ -127,9 +129,7 @@ public class Server implements ActionListener
 		availableSourcesArea.setBackground(new Color(127, 219, 207));
 		
 		sourcePanel.add(availableSourcesArea);
-		
-		threads = new ArrayList<>();
-		
+				
 		if(!readSources())
 		{
 			ArrayList<SourceThread> threads = jsm.getSourceList();

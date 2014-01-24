@@ -5,9 +5,14 @@ package javasound;
 
 import java.util.ArrayList;
 
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Line;
+import javax.sound.sampled.Line.Info;
+import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.TargetDataLine;
 
 import server.Server;
 
@@ -35,14 +40,28 @@ public class JavasoundManager
 	{
 		numSources = 0;
 		Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
+		ArrayList<TargetDataLine> targets = new ArrayList<>();
 		for(Mixer.Info info : mixerInfos)
 		{
 			if(info.getName().contains("Audiocast") && !info.getName().contains("Port Audiocast"))
 			{
-				sourceThreads.add(new SourceThread(server, serverOutput, AudioSystem.getMixer(info), sourceThreads.size()));
-				sourceThreads.get(sourceThreads.size()-1).start();
-				numSources++;
+				try
+				{
+					targets.add(AudioSystem.getTargetDataLine(new AudioFormat(44100, 16, 2, true, true), info));
+				} catch (LineUnavailableException e)
+				{
+					e.printStackTrace();
+				}
+				//sourceThreads.add(new SourceThread(server, serverOutput, AudioSystem.getMixer(info), sourceThreads.size()));
+				//sourceThreads.get(sourceThreads.size()-1).start();
+				//numSources++;
 			}
+		}
+		for(TargetDataLine line : targets)
+		{
+			sourceThreads.add(new SourceThread(server, serverOutput, line, sourceThreads.size()));
+			sourceThreads.get(sourceThreads.size()-1).start();
+			numSources++;
 		}
 	}
 	

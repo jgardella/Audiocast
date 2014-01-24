@@ -17,17 +17,17 @@ public class SourceThread extends Thread
 {
 	
 	private byte[] b;
-	private Mixer source;
+	private TargetDataLine source;
 	private int sourceIndex;
 	private SourceDataLine serverOutput;
 	private boolean output;
 	private Server server;
 	
-	public SourceThread(Server s, SourceDataLine serverOutput, Mixer m, int sourceIndex)
+	public SourceThread(Server s, SourceDataLine serverOutput, TargetDataLine t, int sourceIndex)
 	{
 		super("SourceThread");
 		output = false;
-		source = m;
+		source = t;
 		this.serverOutput = serverOutput;
 		server = s;
 		this.sourceIndex = sourceIndex;
@@ -35,11 +35,12 @@ public class SourceThread extends Thread
 	
 	public void run()
 	{
+		TargetDataLine line = null;
 		try
 		{
-			TargetDataLine line = (TargetDataLine) AudioSystem.getLine(source.getTargetLineInfo()[0]);
+			line = source;
 			b = new byte[line.getBufferSize()];
-			line.open(new AudioFormat(192000, 16, 2, true, true));
+			line.open(new AudioFormat(44100, 16, 2, true, true));
 			line.start();
 			while(true)
 			{
@@ -51,6 +52,12 @@ public class SourceThread extends Thread
 		} catch (LineUnavailableException e)
 		{
 			e.printStackTrace();
+			System.out.println(sourceIndex);
+		}
+		finally
+		{
+			line.stop();
+			line.close();
 		}
 	}
 	
