@@ -40,28 +40,22 @@ public class JavasoundManager
 	{
 		numSources = 0;
 		Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
-		ArrayList<TargetDataLine> targets = new ArrayList<>();
 		for(Mixer.Info info : mixerInfos)
 		{
 			if(info.getName().contains("Audiocast") && !info.getName().contains("Port Audiocast"))
 			{
 				try
 				{
-					targets.add(AudioSystem.getTargetDataLine(new AudioFormat(44100, 16, 2, true, true), info));
+					sourceThreads.add(new SourceThread(server, serverOutput,
+							AudioSystem.getTargetDataLine(new AudioFormat(44100, 16, 2, true, true), info),
+							sourceThreads.size()));
+					sourceThreads.get(sourceThreads.size()-1).start();
+					numSources++;
 				} catch (LineUnavailableException e)
 				{
 					e.printStackTrace();
 				}
-				//sourceThreads.add(new SourceThread(server, serverOutput, AudioSystem.getMixer(info), sourceThreads.size()));
-				//sourceThreads.get(sourceThreads.size()-1).start();
-				//numSources++;
 			}
-		}
-		for(TargetDataLine line : targets)
-		{
-			sourceThreads.add(new SourceThread(server, serverOutput, line, sourceThreads.size()));
-			sourceThreads.get(sourceThreads.size()-1).start();
-			numSources++;
 		}
 	}
 	

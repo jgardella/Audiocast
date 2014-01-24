@@ -17,7 +17,7 @@ public class SourceThread extends Thread
 {
 	
 	private byte[] b;
-	private TargetDataLine source;
+	private TargetDataLine line;
 	private int sourceIndex;
 	private SourceDataLine serverOutput;
 	private boolean output;
@@ -27,7 +27,7 @@ public class SourceThread extends Thread
 	{
 		super("SourceThread");
 		output = false;
-		source = t;
+		line = t;
 		this.serverOutput = serverOutput;
 		server = s;
 		this.sourceIndex = sourceIndex;
@@ -35,10 +35,8 @@ public class SourceThread extends Thread
 	
 	public void run()
 	{
-		TargetDataLine line = null;
 		try
 		{
-			line = source;
 			b = new byte[line.getBufferSize()];
 			line.open(new AudioFormat(44100, 16, 2, true, true));
 			line.start();
