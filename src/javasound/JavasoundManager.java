@@ -7,12 +7,9 @@ import java.util.ArrayList;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Line;
-import javax.sound.sampled.Line.Info;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
-import javax.sound.sampled.TargetDataLine;
 
 import server.Server;
 
@@ -47,6 +44,8 @@ public class JavasoundManager
 				try
 				{
 					sourceThreads.add(new SourceThread(server, serverOutput,
+							// It is crucial that the TargetDataLine is retrieved through AudioSystem and not from the Mixer itself.
+							// If the TargetDataLine is retrieved from the Mixer, only one can be opened at a time.
 							AudioSystem.getTargetDataLine(new AudioFormat(44100, 16, 2, true, true), info),
 							sourceThreads.size()));
 					sourceThreads.get(sourceThreads.size()-1).start();

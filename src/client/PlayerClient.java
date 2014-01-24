@@ -34,7 +34,7 @@ public class PlayerClient implements ActionListener
 	private JTextArea statusArea, consoleArea;
 	private JScrollPane consolePane;
 	private JButton consoleToggle, playButton;
-	private final String HOST_ADDRESS = "192.168.1.101";
+	private final String HOST_ADDRESS = "155.246.126.220";
 	private SourceDataLine output;
 	private boolean play;
 	
