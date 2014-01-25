@@ -35,7 +35,7 @@ public class SourceThread extends Thread
 	{
 		try
 		{
-			b = new byte[line.getBufferSize()];
+			b = new byte[line.getBufferSize() / 50];
 			line.open(new AudioFormat(44100, 16, 2, true, true));
 			line.start();
 			while(true)
