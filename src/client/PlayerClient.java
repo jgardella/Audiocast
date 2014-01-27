@@ -45,11 +45,11 @@ public class PlayerClient implements ActionListener
 	public PlayerClient()
 	{	
 		play = false;
-		AudioFormat format = new AudioFormat(44100, 16, 2, true, true);
+		AudioFormat format = new AudioFormat(44100, 16, 1, true, true);
 		try
 		{
 			output = AudioSystem.getSourceDataLine(format);
-			output.open(format);
+			output.open(format, 6300);
 			output.start();
 		} catch (LineUnavailableException e)
 		{
@@ -142,7 +142,6 @@ public class PlayerClient implements ActionListener
 					break;
 				case "ByteBuffer":
 					ByteBufferDatagram bbgram = ((ByteBufferDatagram)gram);
-					consoleArea.append("ByteBufferDatagram recieved. Playing bytes.\n");
 					if(play)
 						output.write(bbgram.getBuffer(), 0, bbgram.getBuffer().length);
 				}

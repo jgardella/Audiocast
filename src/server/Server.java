@@ -45,10 +45,12 @@ public class Server implements ActionListener
 	public Server()
 	{
 		
-		AudioFormat format = new AudioFormat(44100, 16, 2, true, true);
+		AudioFormat format = new AudioFormat(44100, 16, 1, true, true);
 		try
 		{
 			serverOutput = AudioSystem.getSourceDataLine(format);
+			serverOutput.open(format, 6300);
+			serverOutput.start();
 		} catch (LineUnavailableException e)
 		{
 			e.printStackTrace();
